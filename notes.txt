@@ -1,0 +1,112 @@
+﻿Decompile:
+Magi rundt async await keywordet.
+- State maskin
+
+Xamarin -> Desktop -> forskjellige ting skjer.
+
+0.
+Signaturen er en løgn.
+return Task, ingen state machine.
+stacktraces... :O
+
+1a.
+.Result ender i Deadlock.
+Dispatcher etc.
+CallerMemberName er awesome!
+SyncronizationContext!
+
+1b.
+await ender ikke i Deadlock.
+
+1c.
+etter await er den på samme tråd
+fjerne sync context og vise endring.
+vise configure await.
+
+1d.
+Configure await vil fortsatt havne tilbake i samme context.
+
+2a.
+async void Kjører alt på main thread. I dette tilfellet (ikke nødvendigvis alltid slik). Xamarin.
+
+2b.
+Exceptions kan ikke bli catcha fra async void.
+
+3.
+Tre "final states":
+RanToCompletion
+
+Canceled
+Faulted
+
+ContinueWith, oppfører seg litt annerledes.
+Exception blir håndtert i ContinueWith (pga options).
+Vise flere TaskContinuationOptions...
+
+4.
+Flere kan awaite samme task.
+WhenAll
+
+5a.
+Først etter Task.Delay så fortsetter Main.
+Alt før dette kjører synkront.
+
+5b.
+Vise de forskjellige... hva skjer når jeg kommenterer ut å kjører...
+
+5c.
+Selv med ConfigureAwait så blir magien feil.
+
+6.
+Microsoft sin implementasjon.
+Ikke bruk den... bruk Task.Run. !!!
+Force sync -> Task.Run().Wait(); ... men sløser med tråder.
+Unwrap -> 'Task<Task<int>>' to 'Task<int>'
+
+7.
+Semaphore for locking.
+Interlockt for threadsafe (gammel men god).
+lock/monitor er ofte fyfy.
+
++ med multiawait, kan denne bli kul
+... avinor, event ignore (button). Kun et kall til API. Caching. etc.
+https://github.com/oddbear/DoubleTapTest
+
+8.
+Hvordan gjøre om callback til async / await.
+
+9a.
+Enkel custom task.
+Ingen interfaces etc. :O
+
+9b.
+Custom sync context.
+Post biten. -> Simulert hva som skjer i .net
+
+
+
+
+
+
+
+
+
+//Litt rundt async/await:
+http://stackoverflow.com/questions/10285159/difference-between-the-tpl-async-await-thread-handling
+
+
+
+Task -> TaskScheduler -> SyncronizationContext
+             \- ConfigureAwait
+
+Yield
+TaskCompletionSource
+
+
+
+//Task -> IO bound.
+Task.Run //CPU bound.
+
+
+Ønske om å holde UI tråd ren.
+Effektiv måte å behandle IO.

@@ -1,0 +1,202 @@
+Ved UI SyncContext:
+
+1.
+await SomeTask()
+//BackInContext
+
+2.
+await Task.Run(() => SyncWorkInBg)
+//Back in context
+
+3.
+//Context
+[async void]DoWork() (fortsatt i context)
+//Context (men kanskje før metoden)
+
+4.
+async void EventHandler(object sender, EventArgs arg)
+//Context, og lov :O
+//Men context vil være en annen enn main, dersom man starter den fra annen context.
+
+5.
+await [async Task]DoWork().ConfigureAwait(false)
+//Ikke i context
+
+6.
+await [async Task]DoWork()
+	//Context
+	await [async Task]DoWorkInner().ConfigureAwait(false)
+	//Ikke i context
+//Back in context
+
+7.
+[async Task]DoWork().ContinueWith(task => {})
+//Context, også i metode og callback. Trenger ingen await.
+
+8.
+await [async Task]DoWork().ConfigureAwait(false)
+	//Context
+	[void]DoWorkInner() //Vil være i context.
+	//Context
+//Context, og treg, da alt kjøres synkront.
+
+9.
+var result = [async Task]DoWork().Result;
+//Sannsynligvis deadlock.
+
+10.
+//CompletionSource
+
+11.
+Task task = Task.Run((Action) MyFunction);
+//Slik kode skal fungere… Da skal man jo aldri trenge async void (med unntak av events).
+
+12.
+//Fra Main:
+Task t = CheckTask();
+
+private async Task SyncAsyncTest(bool sync)
+{
+   if (sync)
+       return; //True (kjører sync)
+       //await Task.Delay(0); //False (kjører ikke sync)
+       //await Task.FromResult(0); //False (kjører ikke sync)
+
+   await Task.Delay(100);
+}
+
+private async Task CheckTask()
+{
+   App.CheckIsOnMainThread(); //False
+
+   await Task.Yield(); //True
+   //await Task.FromResult(0); //False
+   //await Task.Delay(0); //False
+   //await Task.Delay(1); //True
+   App.CheckIsOnMainThread(); //Se over.
+
+   await SyncAsyncTest(true).ConfigureAwait(false);
+   App.CheckIsOnMainThread(); //False (uten yield), True (Tem3 await)
+   await SyncAsyncTest(false).ConfigureAwait(false);
+   App.CheckIsOnMainThread(); //False (uten yield), False (Tem3 await)
+}
+
+13.
+//Flere kan awaite samme task.
+var task = Task.Delay(100);
+await Task.WhenAll(
+   Task.Run(async () => await task),
+   Task.Run(async () => await task)
+);
+
+14.
+Three final states:
+RanToCompletion
+Canceled
+Faulted
+
+15.
+_serviceSemaphore = new SemaphoreSlim(1, 1);
+
+await _serviceSemaphore.WaitAsync();
+try
+{
+   //Single threaded context.
+}
+finally
+{
+   _serviceSemaphore.Release();
+}
+
+16.
+//async er jukse keyword (compiler hint, ikke signatur):
+interface IBla { void T(); }
+class Bla : IBla { public async void T() { /* … */ } }
+
+17.
+Yield
+
+18.
+//Force sync (uten deadlock):
+private T RunTask<T>(Func<Task<T>> method)
+{
+    var task = Task.Run(method);
+    try
+    {
+        task.Wait();
+    }
+    catch (AggregateException ae)
+    {
+        ae.Handle(ex => { throw ex; });
+    }
+    return task.Result;
+}
+
+19.
+//https://linqpad.uservoice.com/forums/18302-linqpad-feature-suggestions/suggestions/1398997-allow-fixed-width-font-for-the-results-pane
+
+/*
+You can go to Edit -> Preferences -> Results -> Style sheet for text (HTML) results -> Custom -> Launch Editor and add:
+
+body { font-family: monospace; }
+*/
+
+Thread _mainThread;
+
+async Task Main()
+{
+    var context = new WindowsFormsSynchronizationContext();
+    SynchronizationContext.SetSynchronizationContext(context);
+
+    _mainThread = Thread.CurrentThread;
+    _mainThread.CurrentCulture = new CultureInfo("ja-JP");
+    PrintCulture(); //Original context
+    await Work();
+    PrintCulture(); //Still in context
+    await Task.Run(Work); //execute on threadpool thread.
+    PrintCulture(); //Still in context
+    await Work().ConfigureAwait(false);
+    PrintCulture(); //Other context
+}
+
+async Task Work()
+{
+    await Task.Delay(100);
+    PrintCulture();
+}
+
+void PrintCulture([CallerMemberName]string name = "unknown")
+{
+    Console.WriteLine("{0}: {1} :: {2} :: {3}", name, Thread.CurrentThread.CurrentCulture.Name, (1.0m).ToString(), Thread.CurrentThread == _mainThread);
+}
+
+
+
+
+
+
+
+
+
+
+
+————————————————————————
+
+
+
+
+
+async Task ReturnsInstant()
+{
+	return;
+}
+
+ReturnsInstant.ConfigureAwait(false); //forstat MainThread.
+
+await Task => await Task.ConfigureAwait(false); //fortsatt MainThread.
+await Task.ConfigureAwait(false); //Ikke Main thread.
+
+
+IsMainThread
+
+logs
