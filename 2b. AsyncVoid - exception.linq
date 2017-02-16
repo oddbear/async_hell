@@ -8,7 +8,7 @@
   <Namespace>System.Windows.Threading</Namespace>
 </Query>
 
-async Task DoWork()
+async void DoWork()
 {
 	await Task.Delay(10);
 	throw new Exception();
