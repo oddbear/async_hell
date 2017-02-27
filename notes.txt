@@ -25,6 +25,11 @@ vise configure await.
 
 1d.
 Configure await vil fortsatt havne tilbake i samme context.
+(culture forsvinner i noen contexter, pga. at den følger tråden)
+
+1e.
+Problem i 1d. kan fikses på flere måter.
+Bør nok hentes ut ved behov (siden man kan ha mistet den på veien før man bruker extension metode).
 
 2a.
 async void Kjører alt på main thread. I dette tilfellet (ikke nødvendigvis alltid slik). Xamarin.
