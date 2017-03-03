@@ -18,10 +18,10 @@ void Main() //ForceSyncIsh...
 	Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
 	Console.WriteLine($"Start, {Thread.CurrentThread.CurrentCulture}");
 	
-	//var a = DoWork().Result; //DeadLock
+	//var a = DoWork(3).GetAwaiter().GetResult(); //.Result; //DeadLock
 
 	Console.WriteLine("--- start ---");
-	var x = Task.Run(() => DoWork(1)).Result;
+	var x = Task.Run(() => DoWork(1)).GetAwaiter().GetResult(); //.Result; or .Wait(); -> Wrappes Exception as a inner exception of AggregateException... use GetResult()
 	Console.WriteLine("--- end ---");
 
 	Console.WriteLine("--- start ---");

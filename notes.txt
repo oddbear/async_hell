@@ -51,6 +51,7 @@ Vise flere TaskContinuationOptions...
 4.
 Flere kan awaite samme task.
 WhenAll
+Kan være issues med f.eks. EntityFramework, dersom tasken kommer fra samme context (ikke async/await sin feil).
 
 5a.
 Først etter Task.Delay så fortsetter Main.
@@ -67,6 +68,7 @@ Microsoft sin implementasjon.
 Ikke bruk den... bruk Task.Run. !!!
 Force sync -> Task.Run().Wait(); ... men sløser med tråder.
 Unwrap -> 'Task<Task<int>>' to 'Task<int>'
+GetResult > .Result / .Wait
 
 7.
 Semaphore for locking.
