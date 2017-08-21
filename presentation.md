@@ -13,4 +13,4 @@ Huskeregler
 	- Biblioteker kan være implementert feil (og mangle ConfigureAwait)
 - Bruk Task.Run og ikke Task.Factory.StartNew
 - Flere kan vente på samme task.
-- Favorisert ‘return task’ over ‘await task’
+- Favorisert ‘return task’ over ‘await task’ (obs. vil endre stacktrace / skippe 'mellommetode')
